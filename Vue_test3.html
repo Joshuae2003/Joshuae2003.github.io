@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <Script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></Script>
+    <title>Web Store</title>
+</head>
+
+<body>
+    <div id="webstore">
+        <h1>
+            {{message}}
+        </h1>
+        <main>
+            <figure>
+                <img v-bind:src="product.image" alt="Melrose image">
+                <h2 v-text:src="product.title"></h2>
+                <p v-text:src="product.description"></p>
+                <p> price:{{product.price}}</p>
+            </figure>
+        </main>
+    </div>
+</body>
+
+<script>
+    let webstore = new Vue({
+        el: '#webstore',
+        data:{
+            message: "Welcome to my web store!",
+            product:{
+                id: 98765,
+                title: "Melrose 250 grams",
+                description: "Mom remember Melrose!",
+                price: 250,
+                image:'images/melrose.png',
+            }
+        }
+    })
+</script>
+
+</html>
