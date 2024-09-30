@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <Script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></Script>
     <title>Web Store</title>
+    <link rel="stylesheet" type=“text/css” href="checkout.css">
 </head>
 
 <body>
@@ -13,12 +14,15 @@
         <h1>
             {{message}}
         </h1>
+        <button v-on:click="showCheckout">Checkout {{itemInCart}}</button>
         <main>
+
             <figure>
                 <img v-bind:src="product.image" alt="Melrose image">
                 <h2 v-text:src="product.title"></h2>
                 <p v-text:src="product.description"></p>
                 <p> price:{{product.price}}</p>
+                <button>Add To Cart</button>
             </figure>
         </main>
     </div>
@@ -27,15 +31,18 @@
 <script>
     let webstore = new Vue({
         el: '#webstore',
-        data:{
+        data: {
             message: "Welcome to my web store!",
-            product:{
+            product: {
                 id: 98765,
                 title: "Melrose 250 grams",
                 description: "Mom remember Melrose!",
                 price: 250,
-                image:'images/melrose.png',
+                image: 'images/melrose.png',
             }
+        },
+        methods: {
+
         }
     })
 </script>
