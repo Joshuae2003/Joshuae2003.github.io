@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+    <link rel="stylesheet" href="store.css">
+    <title>Web Store</title>
+</head>
+
+<body>
+    <div id="webstore">
+        <h1>{{ message }}</h1>
+        <button v-on:click="showCheckout">{{ cart.length }} Checkout</button>
+        <main>
+            <!-- Product Page -->
+            <div v-if="showProduct">
+                <div class="product-list">
+                    <figure v-for="product in products" :key="product.id">
+                        <img :src="product.image" :alt="product.title + ' image'">
+                        <h2>{{ product.title }}</h2>
+                        <p>{{ product.description }}</p>
+                        <p>Price: {{ product.price }}</p>
+                        <p>Available inventory: {{ product.availableInventory }}</p>
+
+                        <!-- 5-Star Rating -->
+                        <div>
+                            <span v-for="n in product.rating" :key="n">⭐</span>
+                            <span v-for="n in 5 - product.rating" :key="n" class="empty-star">☆</span>
+                        </div>
+
+                        <!-- Add to Cart Button -->
+                        <input type="button" v-on:click="addItemToCart(product)" v-if="canAddToCart(product)"
+                            value="Add to cart">
+                        <input type="button" value="Add to cart" disabled v-else>
+                    </figure>
+                </div>
+            </div>
+
+            <!-- Checkout Page -->
+            <div v-else>
+                <h1>Checkout</h1>
+                <form class="checkout-form" @submit.prevent="submitForm">
+                    <label>
+                        Name:
+                        <input type="text" v-model="checkout.name" required>
+                    </label>
+                    <label>
+                        Surname:
+                        <input type="text" v-model="checkout.surname" required>
+                    </label>
+                    <label>
+                        Country:
+                        <select v-model="checkout.country" required>
+                            <option value="USA">USA</option>
+                            <option value="Canada">Canada</option>
+                            <option value="UK">UK</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Germany">Germany</option>
+                        </select>
+                    </label>
+                    <label>
+                        Is it a gift?:
+                        <input type="checkbox" v-model="checkout.isGift">
+                        <span v-if="checkout.isGift">This is a gift</span>
+                    </label>
+                    <p>Total items: {{ cart.length }}</p>
+                    <p>Total price: {{ totalPrice }}</p>
+                    <button type="button" @click="showCheckout">Return to store</button>
+                    <button type="submit">Submit</button>
+                </form>
+
+                <!-- Display submitted data -->
+                <div v-if="submitted">
+                    <h2>Submitted Data:</h2>
+                    <p><strong>Name:</strong> {{ checkout.name }}</p>
+                    <p><strong>Surname:</strong> {{ checkout.surname }}</p>
+                    <p><strong>Country:</strong> {{ checkout.country }}</p>
+                    <p><strong>Is it a gift?:</strong> {{ checkout.isGift ? 'Yes' : 'No' }}</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="products.js"></script>
+    <script>
+        let webstore = new Vue({
+            el: '#webstore',
+            data: {
+                message: "Welcome to the Web Store!",
+                products: productData,
+                cart: [],
+                showProduct: true,
+                checkout: {
+                    name: '',
+                    surname: '',
+                    country: '',
+                    isGift: false
+                },
+                submitted: false
+            },
+            methods: {
+                addItemToCart: function (product) {
+                    if (product.availableInventory > 0) {
+                        this.cart.push(product);
+                        product.availableInventory--;
+                    }
+                },
+                showCheckout: function () {
+                    this.showProduct = !this.showProduct;
+                },
+                submitForm: function () {
+                    this.submitted = true;
+                },
+                canAddToCart: function (product) {
+                    return product.availableInventory > 0;
+                }
+            },
+            computed: {
+                totalPrice: function () {
+                    return this.cart.reduce((sum, product) => sum + product.price, 0);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
