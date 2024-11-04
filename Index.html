@@ -16,8 +16,20 @@
         <main>
             <!-- Product Page -->
             <div v-if="showProduct">
+                <!-- Sorting Buttons -->
+                <div class="sorting-options">
+                    <button @click="sortProducts('availability')">Sort by Availability</button>
+                    <button @click="sortProducts('rating')">Sort by Rating</button>
+                    <button @click="sortProducts('price')">Sort by Price</button>
+                </div>
+
+                <!-- Search Box -->
+                <div class="search-bar">
+                    <input type="text" v-model="searchQuery" placeholder="Search products...">
+                </div>
+
                 <div class="product-list">
-                    <figure v-for="product in products" :key="product.id">
+                    <figure v-for="product in filteredProducts" :key="product.id">
                         <img :src="product.image" :alt="product.title + ' image'">
                         <h2>{{ product.title }}</h2>
                         <p>{{ product.description }}</p>
@@ -68,7 +80,8 @@
                     <p>Total items: {{ cart.length }}</p>
                     <p>Total price: {{ totalPrice }}</p>
                     <button type="button" @click="showCheckout">Return to store</button>
-                    <button type="submit">Submit</button>
+                    <!-- Disable the submit button if form is not complete -->
+                    <button type="submit" :disabled="!isFormComplete">Submit</button>
                 </form>
 
                 <!-- Display submitted data -->
@@ -98,7 +111,9 @@
                     country: '',
                     isGift: false
                 },
-                submitted: false
+                submitted: false,
+                searchQuery: '', // For search functionality
+                sortKey: '' // To track the current sort type
             },
             methods: {
                 addItemToCart: function (product) {
@@ -115,11 +130,33 @@
                 },
                 canAddToCart: function (product) {
                     return product.availableInventory > 0;
+                },
+                sortProducts: function (key) {
+                    this.sortKey = key;
                 }
             },
             computed: {
+                filteredProducts: function () {
+                    let products = this.products.filter(product => {
+                        return product.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                            product.description.toLowerCase().includes(this.searchQuery.toLowerCase());
+                    });
+
+                    if (this.sortKey === 'availability') {
+                        return products.sort((a, b) => b.availableInventory - a.availableInventory);
+                    } else if (this.sortKey === 'rating') {
+                        return products.sort((a, b) => b.rating - a.rating);
+                    } else if (this.sortKey === 'price') {
+                        return products.sort((a, b) => a.price - b.price);
+                    }
+
+                    return products;
+                },
                 totalPrice: function () {
                     return this.cart.reduce((sum, product) => sum + product.price, 0);
+                },
+                isFormComplete: function () {
+                    return this.checkout.name && this.checkout.surname && this.checkout.country;
                 }
             }
         });
