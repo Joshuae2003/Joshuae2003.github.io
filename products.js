@@ -13,7 +13,7 @@ const productData = [
         title: "Physics",
         description: "An introduction to basic physics.",
         price: 300,
-        image: 'images/physics.jpg',
+        image: 'images/physics.png',
         availableInventory: 3,
         rating: 4
     },

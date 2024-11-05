@@ -12,7 +12,7 @@
 <body>
     <div id="webstore">
         <h1>{{ message }}</h1>
-        <button v-on:click="showCheckout">{{ cart.length }} Checkout</button>
+        <button v-on:click="showCheckout" :disabled="cart.length === 0">{{ cart.length }} items for Checkout</button>
         <main>
             <!-- Product Page -->
             <div v-if="showProduct">
@@ -79,8 +79,17 @@
                     </label>
                     <p>Total items: {{ cart.length }}</p>
                     <p>Total price: {{ totalPrice }}</p>
+
+                    <!-- Display products in cart -->
+                    <h3>Products in Cart:</h3>
+                    <ul>
+                        <li v-for="(count, product) in cartSummary" :key="product">
+                            {{ product }} - Quantity: {{ count }}
+                            <button @click="removeItemFromCart(product)">Remove</button>
+                        </li>
+                    </ul>
+
                     <button type="button" @click="showCheckout">Return to store</button>
-                    <!-- Disable the submit button if form is not complete -->
                     <button type="submit" :disabled="!isFormComplete">Submit</button>
                 </form>
 
@@ -133,6 +142,15 @@
                 },
                 sortProducts: function (key) {
                     this.sortKey = key;
+                },
+                removeItemFromCart: function (productTitle) {
+                    // Find the product in the cart
+                    const productIndex = this.cart.findIndex(product => product.title === productTitle);
+                    if (productIndex !== -1) {
+                        const product = this.cart[productIndex];
+                        this.cart.splice(productIndex, 1); // Remove the product from the cart
+                        product.availableInventory++; // Increase the product's inventory
+                    }
                 }
             },
             computed: {
@@ -157,6 +175,23 @@
                 },
                 isFormComplete: function () {
                     return this.checkout.name && this.checkout.surname && this.checkout.country;
+                },
+                totalPrice: function () {
+                    return this.cart.reduce((sum, product) => sum + product.price, 0);
+                },
+                isFormComplete: function () {
+                    return this.checkout.name && this.checkout.surname && this.checkout.country;
+                },
+                cartSummary: function () {
+                    let summary = {};
+                    this.cart.forEach(product => {
+                        if (summary[product.title]) {
+                            summary[product.title]++;
+                        } else {
+                            summary[product.title] = 1;
+                        }
+                    });
+                    return summary;
                 }
             }
         });
