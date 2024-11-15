@@ -121,8 +121,8 @@
                     isGift: false
                 },
                 submitted: false,
-                searchQuery: '', // For search functionality
-                sortKey: '' // To track the current sort type
+                searchQuery: '',
+                sortKey: ''
             },
             methods: {
                 addItemToCart: function (product) {
@@ -148,8 +148,8 @@
                     const productIndex = this.cart.findIndex(product => product.title === productTitle);
                     if (productIndex !== -1) {
                         const product = this.cart[productIndex];
-                        this.cart.splice(productIndex, 1); // Remove the product from the cart
-                        product.availableInventory++; // Increase the product's inventory
+                        this.cart.splice(productIndex, 1);
+                        product.availableInventory++;
                     }
                 }
             },
