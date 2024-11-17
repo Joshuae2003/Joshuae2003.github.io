@@ -25,6 +25,8 @@ const uri = `${dbPrefix}${dbUser}:${dbPassword}${dbHost}${dbParams}`;
 const client = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
 
 let db1;//declare variable
+app.use(express.static(path.join(__dirname)));
+
 
 async function connectDB() {
   try {
@@ -46,19 +48,21 @@ app.param('collectionName', async function (req, res, next, collectionName) {
   next();
 });
 
+// Serve your index.html file when accessing the root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Ensure this route is defined after the middleware app.param
 // get all data from our collection in Mongodb
-app.get('/collections/:collectionName', async function (req, res, next) {
+app.get('/collections/products', async function (req, res, next) {
   try {
-    const results = await req.collection.find({}).toArray();
-
+    const results = await db1.collection('Products').find({}).toArray();
     console.log('Retrieved data:', results);
-
-    res.json(results);
-
-  }
-  catch (err) {
+    res.json(results); // Send the products to the frontend
+  } catch (err) {
     console.error('Error fetching docs', err.message);
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
 
@@ -75,38 +79,38 @@ app.get('/collections/:collectionName/:id', async function (req, res, next) {
 });
 
 app.post('/collections/:collectionName', async function (req, res, next) {
-  try{
+  try {
 
   }
-  catch{
+  catch {
 
   }
 });
 
 app.delete('/collections/:collectionName/:id', async function (req, res, next) {
-  try{
+  try {
     console.log('Recieved Request :', req.params.id);
 
-    const results = await req.collection.deleteOne( {_id: new ObjectId(req.params.id)});
+    const results = await req.collection.deleteOne({ _id: new ObjectId(req.params.id) });
 
     console.log('Deleted data:', results);
 
-    res.json((results.deleteCount === 1)) ? {msg : "Success"} : {msg : "Error"}
+    res.json((results.deleteCount === 1)) ? { msg: "Success" } : { msg: "Error" }
   }
-  catch{
+  catch {
 
   }
 });
 
 app.put('/collections/:collectionName/:id', async function (req, res, next) {
-  try{
+  try {
     console.log("recieved Request :", req.params.id);
 
-    const results = await req.collection.updateOne( {_id: new ObjectId(req.params.id)});
-    
+    const results = await req.collection.updateOne({ _id: new ObjectId(req.params.id) });
+
   }
-  catch{
-    
+  catch {
+
   }
 });
 

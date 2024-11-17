@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="product-list">
-                    <figure v-for="product in filteredProducts" :key="product.id">
+                    <figure v-for="product in filteredProducts" :key="product._id">
                         <img :src="product.image" :alt="product.title + ' image'">
                         <h2>{{ product.title }}</h2>
                         <p>{{ product.description }}</p>
@@ -104,14 +104,12 @@
             </div>
         </main>
     </div>
-
-    <script src="products.js"></script>
     <script>
         let webstore = new Vue({
             el: '#webstore',
             data: {
                 message: "Welcome to the Web Store!",
-                products: productData,
+                products: [],
                 cart: [],
                 showProduct: true,
                 checkout: {
@@ -144,12 +142,19 @@
                     this.sortKey = key;
                 },
                 removeItemFromCart: function (productTitle) {
-                    // Find the product in the cart
                     const productIndex = this.cart.findIndex(product => product.title === productTitle);
                     if (productIndex !== -1) {
                         const product = this.cart[productIndex];
                         this.cart.splice(productIndex, 1);
                         product.availableInventory++;
+                    }
+                },
+                fetchProducts: async function () {
+                    try {
+                        const response = await fetch('http://localhost:3000/collections/products'); // Use the correct endpoint
+                        this.products = await response.json(); // Update products with data from the backend
+                    } catch (error) {
+                        console.error('Error fetching products:', error);
                     }
                 }
             },
@@ -176,12 +181,6 @@
                 isFormComplete: function () {
                     return this.checkout.name && this.checkout.surname && this.checkout.country;
                 },
-                totalPrice: function () {
-                    return this.cart.reduce((sum, product) => sum + product.price, 0);
-                },
-                isFormComplete: function () {
-                    return this.checkout.name && this.checkout.surname && this.checkout.country;
-                },
                 cartSummary: function () {
                     let summary = {};
                     this.cart.forEach(product => {
@@ -193,6 +192,9 @@
                     });
                     return summary;
                 }
+            },
+            mounted: function () {
+                this.fetchProducts(); // Fetch products on load
             }
         });
     </script>
