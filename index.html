@@ -31,7 +31,7 @@
                         <option value="desc">Descending</option>
                     </select>
 
-                    <button @click="sortProducts">Sort</button>
+                    <button v-on:click="sortProducts">Sort</button>
                 </div>
 
                 <!-- Search Box -->
@@ -96,11 +96,11 @@
                     <ul>
                         <li v-for="(count, product) in cartSummary" :key="product">
                             {{ product }} - Quantity: {{ count }}
-                            <button type="button" @click="removeItemFromCart(product)">Remove</button>
+                            <button type="button" v-on:click="removeItemFromCart(product)">Remove</button>
                         </li>
                     </ul>
 
-                    <button type="button" @click="showCheckout">Return to store</button>
+                    <button type="button" v-on:click="showCheckout">Return to store</button>
                     <button type="submit" :disabled="!isFormComplete">Submit</button>
                 </form>
 
@@ -140,6 +140,14 @@
                     if (product.availableInventory > 0) {
                         this.cart.push(product);
                         product.availableInventory--;
+                    }
+                },
+                removeItemFromCart: function (productTitle) {
+                    const productIndex = this.cart.findIndex(product => product.title === productTitle);
+                    if (productIndex !== -1) {
+                        const product = this.cart[productIndex];
+                        this.cart.splice(productIndex, 1);
+                        product.availableInventory++;
                     }
                 },
                 showCheckout: function () {
