@@ -96,7 +96,7 @@
                     <ul>
                         <li v-for="(count, product) in cartSummary" :key="product">
                             {{ product }} - Quantity: {{ count }}
-                            <button @click="removeItemFromCart(product)">Remove</button>
+                            <button type="button" @click="removeItemFromCart(product)">Remove</button>
                         </li>
                     </ul>
 
