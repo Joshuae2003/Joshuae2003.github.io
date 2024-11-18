@@ -62,7 +62,6 @@
             </div>
 
             <!-- Checkout Page -->
-            <!-- Checkout Page -->
             <div v-else>
                 <h1>Checkout</h1>
                 <form class="checkout-form" @submit.prevent="submitForm">
@@ -164,8 +163,59 @@
                         showCheckout: function () {
                             this.showProduct = !this.showProduct;
                         },
-                        submitForm: function () {
-                            this.submitted = true;
+                        submitForm: async function () {
+                            const orderData = {
+                                name: this.checkout.name,
+                                surname: this.checkout.surname,
+                                totalPrice: this.totalPrice,
+                                courses: this.cart.map(product => ({
+                                    title: product.title,
+                                    price: product.price
+                                }))
+                            };
+
+                            try {
+                                // Step 1: Submit the order
+                                const orderResponse = await fetch('http://localhost:3000/collections/orders', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(orderData)
+                                });
+
+                                const orderResult = await orderResponse.json();
+                                if (!orderResponse.ok) {
+                                    throw new Error(orderResult.error || 'Failed to create order');
+                                }
+
+                                // Step 2: Update product availability
+                                const updateResponse = await fetch('http://localhost:3000/collections/products/update-availability', {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        products: this.cart.map(product => ({
+                                            title: product.title,
+                                            quantity: 1 // Assuming each product in the cart has a quantity of 1
+                                        }))
+                                    })
+                                });
+
+                                const updateResult = await updateResponse.json();
+                                if (!updateResponse.ok) {
+                                    throw new Error(updateResult.error || 'Failed to update product availability');
+                                }
+
+                                // Clear the cart and show success message
+                                this.submitted = true;
+                                alert('Order submitted successfully and product availability updated!');
+                                this.cart = [];
+                            } catch (error) {
+                                console.error('Error during order submission or availability update:', error);
+                                alert('An error occurred: ' + error.message);
+                            }
                         },
                         canAddToCart: function (product) {
                             return product.availableInventory > 0;
