@@ -146,10 +146,18 @@
             methods: {
                 fetchProducts: async function () {
                     try {
+                        // Build the query URL with search and sorting parameters
                         const response = await fetch(
                             `http://localhost:3000/collections/products/search?search=${this.searchQuery}&sortKey=${this.sortKey}&sortOrder=${this.sortOrder}`
                         );
-                        this.products = await response.json();
+
+                        // Parse and update the products array
+                        if (response.ok) {
+                            this.products = await response.json();
+                            console.log('Fetched products:', this.products); // Log results for debugging
+                        } else {
+                            console.error('Failed to fetch products:', await response.text());
+                        }
                     } catch (error) {
                         console.error('Error fetching products:', error);
                     }
