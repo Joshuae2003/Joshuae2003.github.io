@@ -19,7 +19,7 @@
                 <!-- Sorting Options -->
                 <div class="sorting-options">
                     <label for="sort-key">Sort by:</label>
-                    <select id="sort-key" v-model="sortKey">
+                    <select id="sort-key" v-model="sortKey" @change="sortProducts">
                         <option value="title">Name</option>
                         <option value="price">Price</option>
                         <option value="rating">Rating</option>
@@ -28,22 +28,19 @@
                     </select>
 
                     <label for="sort-order">Order:</label>
-                    <select id="sort-order" v-model="sortOrder">
+                    <select id="sort-order" v-model="sortOrder" @change="sortProducts">
                         <option value="asc">Ascending</option>
                         <option value="desc">Descending</option>
                     </select>
-
-                    <button v-on:click="sortProducts">Sort</button>
                 </div>
-                <p>Currently sorted by: {{ sortKey }} ({{ sortOrder }})</p>
 
                 <!-- Search Box -->
                 <div class="search-bar">
-                    <input type="text" v-model="searchQuery" placeholder="Search products...">
+                    <input type="text" v-model="searchQuery" placeholder="Search products..." @input="fetchProducts" />
                 </div>
 
                 <div class="product-list">
-                    <figure v-for="product in filteredProducts" :key="product._id">
+                    <figure v-for="product in products" :key="product._id">
                         <img :src="product.image" :alt="product.title + ' image'">
                         <h2>{{ product.title }}</h2>
                         <p>{{ product.description }}</p>
@@ -62,7 +59,6 @@
                             value="Add to cart">
                         <input type="button" value="Add to cart" disabled v-else>
                     </figure>
-
                 </div>
             </div>
 
@@ -94,7 +90,7 @@
                         <span v-if="checkout.isGift">This is a gift</span>
                     </label>
                     <p>Total items: {{ cart.length }}</p>
-                    <p>Total price: {{ totalPrice }}</p>
+                    <p>Total price: Rs {{ totalPrice }}</p>
 
                     <!-- Display products in cart -->
                     <h3>Products in Cart:</h3>
@@ -106,12 +102,6 @@
                             <p>Price: Rs {{ product.price }}</p>
                             <p>Location: {{ product.location }}</p>
                             <p>Available inventory: {{ product.availableInventory }}</p>
-
-                            <!-- 5-Star Rating -->
-                            <div>
-                                <span v-for="n in product.rating" :key="n">⭐</span>
-                                <span v-for="n in 5 - product.rating" :key="n" class="empty-star">☆</span>
-                            </div>
 
                             <!-- Remove Button -->
                             <button type="button" v-on:click="removeItemFromCart(product.title)">Remove</button>
@@ -131,154 +121,106 @@
                     <p><strong>Is it a gift?:</strong> {{ checkout.isGift ? 'Yes' : 'No' }}</p>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <script>
-                let webstore = new Vue({
-                    el: '#webstore',
-                    data: {
-                        message: "Welcome to the Web Store!",
-                        products: [],
-                        cart: [],
-                        showProduct: true,
-                        checkout: {
-                            name: '',
-                            surname: '',
-                            country: '',
-                            isGift: false
-                        },
-                        submitted: false,
-                        searchQuery: '',
-                        sortKey: '', // Sort by key
-                        sortOrder: 'asc' // Sort order (ascending or descending)
-                    },
-                    methods: {
-                        addItemToCart: function (product) {
-                            if (product.availableInventory > 0) {
-                                this.cart.push(product);
-                                product.availableInventory--;
-                            }
-                        },
-                        removeItemFromCart: function (productTitle) {
-                            const productIndex = this.cart.findIndex(product => product.title === productTitle);
-                            if (productIndex !== -1) {
-                                const product = this.cart[productIndex];
-                                this.cart.splice(productIndex, 1);
-                                product.availableInventory++;
-                            }
-                        },
-                        showCheckout: function () {
-                            this.showProduct = !this.showProduct;
-                        },
-                        submitForm: async function () {
-                            const orderData = {
-                                name: this.checkout.name,
-                                surname: this.checkout.surname,
-                                totalPrice: this.totalPrice,
-                                courses: this.cart.map(product => ({
-                                    title: product.title,
-                                    location: product.location,
-                                    price: product.price
-                                }))
-                            };
-
-                            try {
-                                // Step 1: Submit the order
-                                const orderResponse = await fetch('http://localhost:3000/collections/orders', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(orderData)
-                                });
-
-                                const orderResult = await orderResponse.json();
-                                if (!orderResponse.ok) {
-                                    throw new Error(orderResult.error || 'Failed to create order');
-                                }
-
-                                // Step 2: Update product availability
-                                const updateResponse = await fetch('http://localhost:3000/collections/products/update-availability', {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        products: this.cart.map(product => ({
-                                            title: product.title,
-                                            quantity: 1 // Assuming each product in the cart has a quantity of 1
-                                        }))
-                                    })
-                                });
-
-                                const updateResult = await updateResponse.json();
-                                if (!updateResponse.ok) {
-                                    throw new Error(updateResult.error || 'Failed to update product availability');
-                                }
-
-                                // Clear the cart and show success message
-                                this.submitted = true;
-                                alert('Order submitted successfully and product availability updated!');
-                                this.cart = [];
-                            } catch (error) {
-                                console.error('Error during order submission or availability update:', error);
-                                alert('An error occurred: ' + error.message);
-                            }
-                        },
-                        canAddToCart: function (product) {
-                            return product.availableInventory > 0;
-                        },
-                        sortProducts: function () {
-                            if (this.sortKey) {
-                                const direction = this.sortOrder === 'asc' ? 1 : -1;
-
-                                // Basic sorting logic
-                                this.products.sort((a, b) => {
-                                    if (a[this.sortKey] < b[this.sortKey]) return -1 * direction;
-                                    if (a[this.sortKey] > b[this.sortKey]) return 1 * direction;
-                                    return 0;
-                                });
-                            }
-                        },
-                        fetchProducts: async function () {
-                            try {
-                                const response = await fetch('http://localhost:3000/collections/products');
-                                this.products = await response.json();
-                            } catch (error) {
-                                console.error('Error fetching products:', error);
-                            }
-                        }
-                    },
-                    computed: {
-                        filteredProducts: function () {
-                            let products = this.products.filter(product => {
-                                return product.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                                    product.description.toLowerCase().includes(this.searchQuery.toLowerCase());
-                            });
-                            return products;
-                        },
-                        totalPrice: function () {
-                            return this.cart.reduce((sum, product) => sum + product.price, 0);
-                        },
-                        isFormComplete: function () {
-                            return this.checkout.name && this.checkout.surname && this.checkout.country;
-                        },
-                        cartSummary: function () {
-                            let summary = {};
-                            this.cart.forEach(product => {
-                                if (summary[product.title]) {
-                                    summary[product.title]++;
-                                } else {
-                                    summary[product.title] = 1;
-                                }
-                            });
-                            return summary;
-                        }
-                    },
-                    mounted: function () {
-                        this.fetchProducts(); // Fetch products on load
+    <script>
+        let webstore = new Vue({
+            el: '#webstore',
+            data: {
+                message: "Welcome to the Web Store!",
+                products: [], // Holds the product list from the backend
+                cart: [],
+                searchQuery: '', // User's search input
+                sortKey: 'title', // Default sort key
+                sortOrder: 'asc', // Default sort order
+                showProduct: true,
+                checkout: {
+                    name: '',
+                    surname: '',
+                    country: '',
+                    isGift: false
+                },
+                submitted: false
+            },
+            methods: {
+                fetchProducts: async function () {
+                    try {
+                        const response = await fetch(
+                            `http://localhost:3000/collections/products/search?search=${this.searchQuery}&sortKey=${this.sortKey}&sortOrder=${this.sortOrder}`
+                        );
+                        this.products = await response.json();
+                    } catch (error) {
+                        console.error('Error fetching products:', error);
                     }
-                });
-            </script>
+                },
+                sortProducts: function () {
+                    // Fetch products with new sort options
+                    this.fetchProducts();
+                },
+                addItemToCart: function (product) {
+                    if (product.availableInventory > 0) {
+                        this.cart.push(product);
+                        product.availableInventory--;
+                    }
+                },
+                removeItemFromCart: function (productTitle) {
+                    const productIndex = this.cart.findIndex(product => product.title === productTitle);
+                    if (productIndex !== -1) {
+                        const product = this.cart[productIndex];
+                        this.cart.splice(productIndex, 1);
+                        product.availableInventory++;
+                    }
+                },
+                showCheckout: function () {
+                    this.showProduct = !this.showProduct;
+                },
+                submitForm: async function () {
+                    const orderData = {
+                        name: this.checkout.name,
+                        surname: this.checkout.surname,
+                        totalPrice: this.totalPrice,
+                        courses: this.cart.map(product => ({
+                            title: product.title,
+                            price: product.price
+                        }))
+                    };
+
+                    try {
+                        const response = await fetch('http://localhost:3000/collections/orders', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(orderData)
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            this.submitted = true;
+                            alert('Order submitted successfully!');
+                            this.cart = [];
+                        } else {
+                            alert('Error submitting order: ' + result.error);
+                        }
+                    } catch (error) {
+                        alert('Failed to submit order.');
+                    }
+                }
+            },
+            computed: {
+                totalPrice: function () {
+                    return this.cart.reduce((sum, product) => sum + product.price, 0);
+                },
+                isFormComplete: function () {
+                    return this.checkout.name && this.checkout.surname && this.checkout.country;
+                }
+            },
+            mounted: function () {
+                this.fetchProducts(); // Fetch initial products on page load
+            }
+        });
+    </script>
 </body>
 
 </html>
