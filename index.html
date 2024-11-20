@@ -206,7 +206,10 @@
                     } catch (error) {
                         alert('Failed to submit order.');
                     }
-                }
+                },
+                canAddToCart: function (product) {
+                    return product.availableInventory > 0;
+                },
             },
             computed: {
                 totalPrice: function () {
