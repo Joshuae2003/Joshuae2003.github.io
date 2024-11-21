@@ -75,6 +75,11 @@
                         <input type="text" v-model="checkout.surname" required>
                     </label>
                     <label>
+                        Phone Number:
+                        <input type="tel" v-model="checkout.phone" required>
+                    </label>
+
+                    <label>
                         Country:
                         <select v-model="checkout.country" required>
                             <option value="USA">USA</option>
@@ -138,6 +143,7 @@
                 checkout: {
                     name: '',
                     surname: '',
+                    phone: '',
                     country: '',
                     isGift: false
                 },
@@ -187,6 +193,7 @@
                     const orderData = {
                         name: this.checkout.name,
                         surname: this.checkout.surname,
+                        phone: this.checkout.phone, // Include phone number
                         totalPrice: this.totalPrice,
                         courses: this.cart.map(product => ({
                             title: product.title,
@@ -205,9 +212,22 @@
 
                         const result = await response.json();
                         if (response.ok) {
-                            this.submitted = true;
                             alert('Order submitted successfully!');
+
+                            // Reset checkout form
+                            this.checkout = {
+                                name: '',
+                                surname: '',
+                                phone: '',
+                                country: '',
+                                isGift: false
+                            };
+
+                            // Clear the cart and return to the main page
                             this.cart = [];
+                            this.showProduct = true;
+
+                            this.submitted = false; // Hide submitted data section
                         } else {
                             alert('Error submitting order: ' + result.error);
                         }
