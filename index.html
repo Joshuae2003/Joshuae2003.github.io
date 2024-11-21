@@ -100,7 +100,7 @@
                     <!-- Display products in cart -->
                     <h3>Products in Cart:</h3>
                     <div class="product-list">
-                        <figure v-for="(product, index) in products" :key="product._id || index">
+                        <figure v-for="product in cart" :key="product._id">
                             <img :src="product.image" :alt="product.title + ' image'">
                             <h2>{{ product.title }}</h2>
                             <p>{{ product.description }}</p>
