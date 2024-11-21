@@ -100,7 +100,7 @@
                     <!-- Display products in cart -->
                     <h3>Products in Cart:</h3>
                     <div class="product-list">
-                        <figure v-for="product in cart" :key="product._id">
+                        <figure v-for="(product, index) in products" :key="product._id || index">
                             <img :src="product.image" :alt="product.title + ' image'">
                             <h2>{{ product.title }}</h2>
                             <p>{{ product.description }}</p>
@@ -134,11 +134,11 @@
             el: '#webstore',
             data: {
                 message: "Welcome to the Web Store!",
-                products: [], // Holds the product list from the backend
+                products: [],
                 cart: [],
-                searchQuery: '', // User's search input
-                sortKey: 'title', // Default sort key
-                sortOrder: 'asc', // Default sort order
+                searchQuery: '',
+                sortKey: 'title',
+                sortOrder: 'asc',
                 showProduct: true,
                 checkout: {
                     name: '',
@@ -160,7 +160,7 @@
                         // Parse and update the products array
                         if (response.ok) {
                             this.products = await response.json();
-                            console.log('Fetched products:', this.products); // Log results for debugging
+                            console.log('Fetched products:', this.products);
                         } else {
                             console.error('Failed to fetch products:', await response.text());
                         }
@@ -214,7 +214,7 @@
                         orderId: orderId,
                         name: this.checkout.name,
                         surname: this.checkout.surname,
-                        phone: this.checkout.phone, // Include phone number
+                        phone: this.checkout.phone,
                         totalPrice: this.totalPrice,
                         courses: this.cart.map(product => ({
                             title: product.title,
@@ -248,7 +248,7 @@
                             this.cart = [];
                             this.showProduct = true;
 
-                            this.submitted = false; // Hide submitted data section
+                            this.submitted = false;
                         } else {
                             alert('Error submitting order: ' + result.error);
                         }
@@ -269,7 +269,7 @@
                 }
             },
             mounted: function () {
-                this.fetchProducts(); // Fetch initial products on page load
+                this.fetchProducts();
             }
         });
     </script>
