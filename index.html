@@ -230,6 +230,20 @@
                             },
                             body: JSON.stringify(orderData)
                         });
+                        // Update inventory in the backend
+                        const inventoryUpdateResponse = await fetch('https://courses-website-coursework1.onrender.com/collections/products/update-availability', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ products: this.cart.map(product => ({ title: product.title, quantity: 1 })) }) // Send titles and quantities
+                        });
+
+                        if (inventoryUpdateResponse.ok) {
+                            console.log('Inventory updated successfully!');
+                        } else {
+                            console.error('Failed to update inventory:', await inventoryUpdateResponse.text());
+                        }
 
                         const result = await response.json();
                         if (response.ok) {
